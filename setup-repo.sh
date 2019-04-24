@@ -9,6 +9,9 @@ DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 pre_commit_file='.git/hooks/pre-commit';
 
 function ensure_pre_commit_file_exists() {
+  if [ -d ".git/hooks" ]; then
+    $(rm -r .git/hooks)
+  fi
   if [ -e "$pre_commit_file" ]; then
     return 0
   fi 
@@ -16,7 +19,7 @@ function ensure_pre_commit_file_exists() {
   if [ -h "$pre_commit_file" ]; then
     pre_commit_file=$(readlink "$pre_commit_file")
     return 0
-  fi 
+  fi
 
   if [ -d ".git" ]; then
     $(mkdir -p ".git/hooks");
@@ -46,7 +49,12 @@ function ensure_hook_is_installed() {
     echo "#!/usr/bin/env bash" >> $pre_commit_file
     echo "current_repo_path=\$(git rev-parse --show-toplevel)" >> $pre_commit_file
     echo "repo_to_format=\"$repo_path\"" >> $pre_commit_file
+    echo "" >> $pre_commit_file
+    echo "#enable auto-format" >> $pre_commit_file
     echo 'if [ "$current_repo_path" == "$repo_to_format" ]'" && [ -e \"$DIR\"/format-objc-hook ]; then \"$DIR\"/format-objc-hook || exit 1; fi" >> $pre_commit_file
+    echo "" >> $pre_commit_file
+    echo "#disable auto-format" >> $pre_commit_file
+    echo '# if [ "$current_repo_path" == "$repo_to_format" ]'" && [ -e \"$DIR\"/format-objc-hook ]; then \"$DIR\"/format-objc-hook -false || exit 1; fi" >> $pre_commit_file
   fi
 }
 
